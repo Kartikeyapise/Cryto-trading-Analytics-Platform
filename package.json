@@ -1,0 +1,21 @@
+{
+  "name": "alchemy-scripts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@alch/alchemy-web3": "^1.4.7",
+    "alchemy-sdk": "^2.8.0",
+    "axios": "^1.3.6",
+    "dotenv": "^16.0.3",
+    "ethers": "^6.3.0",
+    "fs": "^0.0.1-security"
+  },
+  "type": "module"
+}
