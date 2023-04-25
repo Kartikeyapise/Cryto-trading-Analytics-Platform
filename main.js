@@ -16,51 +16,12 @@ const settings = {
 const alchemy = new Alchemy(settings);
 
 async function main() {
-  // await getTokenMetadata("0xC7A5B2f8CFed62890f9b826A20139169dc9Cc403")
-  //   await getTokenBalancesOfAnAdress("0xaec539a116fa75e8bdcf016d3c146a25bc1af93b");
-  //   await getTokenContractAbi("0xC7A5B2f8CFed62890f9b826A20139169dc9Cc403");
-  //   await getEarlyTokenHolders("0xdAC17F958D2ee523a2206206994597C13D831ec7");
-  // await getTransferEventSig("0xC7A5B2f8CFed62890f9b826A20139169dc9Cc403");
-  // await getAllTokenHolders("0xC7A5B2f8CFed62890f9b826A20139169dc9Cc403","earliest","latest");
-  //   await getTokenHoldersInChunk("0x761d38e5ddf6ccf6cf7c55759d5210750b5d60f3");
-  // await getMintBlockNumberOfAToken(
-  //   "0xdAC17F958D2ee523a2206206994597C13D831ec7"
-  // );
 
-  // await getBlockHashByBlockNumber(4634748);
-  // await getEarlyNTokenHolders("0xdAC17F958D2ee523a2206206994597C13D831ec7",4634748,10);
-  
-  // let txHash = await getTxHashOfAToken("0x6982508145454Ce325dDbE47a25d4ec3d2311933");
-  // let blockNo = await getBLockNoFromTxHash("0x2afae7763487e60b893cb57803694810e6d3d136186a6de6719921afd7ca304a");
-  // await getEarlyNTokenHolders("0x6982508145454Ce325dDbE47a25d4ec3d2311933",blockNo,10);
-  // await getEarlyNTokenHoldersCondensed("0xdAC17F958D2ee523a2206206994597C13D831ec7",10);
-  // await getEarlyNTokenHolderMetrics("0x6982508145454Ce325dDbE47a25d4ec3d2311933",5);
-  await getEarlyNTokenHolderMetrics("0xdAC17F958D2ee523a2206206994597C13D831ec7",50);
-  // await getMetricsForAnAdress("0xfbfeaf0da0f2fde5c66df570133ae35f3eb58c9a");
-  // await getMetricsForAnAdress("0xdAC17F958D2ee523a2206206994597C13D831ec7");
+  await getEarlyNTokenHolderMetrics("0x6982508145454Ce325dDbE47a25d4ec3d2311933",500);
+  return;
 }
 
-await main();
 
-// async function getTokenMetadataFromTokenContractAdress(tokenAdress) {
-//   let res = await axios.post(
-//     `https://eth-mainnet.g.alchemy.com/v2/${API_KEY}`,
-//     {
-//       id: 1,
-//       jsonrpc: "2.0",
-//       method: "alchemy_getTokenMetadata",
-//       params: [tokenAdress],
-//     },
-//     {
-//       headers: {
-//         Accept: "application/json",
-//         "Content-Type": "application/json",
-//       },
-//     }
-//   );
-//   console.log(res.data);
-//   return res;
-// }
 
 async function getAllTokenHolders(tokenAdress, fromBlock, toBlock) {
   let res = await alchemy.core.getLogs({
@@ -238,9 +199,11 @@ async function getEarlyNTokenHolderMetrics(tokenAdress,n){
   }));
   console.log(tokenHoldersMetric);
   let tokenFrequencyArraySorted = await commonTokensOfEarlyNHolders(tokenHoldersMetric);
+  let nftFrequencyArraySorted = await commonNftsOfEarlyNHolders(tokenHoldersMetric);
   dumpJsonInFile(earlyTokenHolders,'earlyTokenHolders.json');
   dumpJsonInFile(tokenHoldersMetric,'tokenHolderMetrics.json');
   dumpJsonInFile(tokenFrequencyArraySorted,'commonTokens.json');
+  dumpJsonInFile(nftFrequencyArraySorted,'commonNfts.json');
   return tokenHoldersMetric;
 }
 
@@ -274,8 +237,41 @@ async function commonTokensOfEarlyNHolders(tokenHoldersMetric){
   console.log(tokenFrequencyArraySorted);
   console.log(Object.keys(tokenFrequencyMap).length);
   console.log(tokenFrequencyArraySorted.length);
-  
+
   return tokenFrequencyArraySorted;
+}
+async function commonNftsOfEarlyNHolders(tokenHoldersMetric){
+  let nftFrequencyMap = {}
+  let nftFrequencyArraySorted = [];
+  
+  for (let key in tokenHoldersMetric){
+    tokenHoldersMetric[key].nftHoldings?.forEach((ele) =>{
+      if(ele.name){
+        if(nftFrequencyMap[ele.name]){
+          nftFrequencyMap[ele.name]+=1
+        }else nftFrequencyMap[ele.name]=1
+      }
+    })
+  }
+
+  for (let ele in nftFrequencyMap) {
+    nftFrequencyArraySorted.push([ele, nftFrequencyMap[ele]]);
+  }
+  
+  // console.log(tokenFrequencyArraySorted.length);
+  // console.log(tokenFrequencyArraySorted);
+  nftFrequencyArraySorted.sort(function(a, b) {
+      return b[1] - a[1];
+  });
+
+
+
+  console.log(nftFrequencyMap);
+  console.log(nftFrequencyArraySorted);
+  console.log(Object.keys(nftFrequencyMap).length);
+  console.log(nftFrequencyArraySorted.length);
+
+  return nftFrequencyArraySorted;
 }
 
 
@@ -289,7 +285,7 @@ async function getMetricsForAnAdress(walletAdress){
     let balance = parseInt(res1._hex);
     resObj.ethBalance = balance;
   }catch(err){
-    console.log("ERROR FOR THIS API");
+    // console.log("ERROR FOR THIS API");
   }
 
   // console.log(balance,resObj);
@@ -306,7 +302,7 @@ async function getMetricsForAnAdress(walletAdress){
     return ele;
   }));
   }catch(err){
-    console.log("ERROR FOR THIS API");
+    // console.log("ERROR FOR THIS API");
   }
 
   try{
@@ -325,7 +321,7 @@ async function getMetricsForAnAdress(walletAdress){
         resObj.nftHoldings.push(objNft)
       }));
   }catch(err){
-    console.log("ERROR FOR THIS API");
+    // console.log("ERROR FOR THIS API");
   }
   
 
@@ -360,3 +356,5 @@ function dumpJsonInFile(jsonData,filename){
       console.log("JSON file has been saved.");
   });
 }
+
+await main();
